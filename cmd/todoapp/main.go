@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	core_logger "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/logger"
-	core_postgres_pool "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/repository/postgres/pool"
+	core_pgx_pool "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/repository/postgres/pool/pgx"
 	core_http_middleware "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/transport/http/middleware"
 	core_http_server "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/transport/http/server"
 	users_repository_postgres "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/features/users/repository/postgres"
@@ -26,18 +26,18 @@ func main() {
 
 	logger, err := core_logger.NewLogger(core_logger.NewConfigMust())
 	if err != nil {
-		fmt.Printf("failed to init aplication logger:", err)
+		fmt.Printf("failed to init application logger: %v", err)
 		os.Exit(1)
 	}
 
 	defer logger.Close()
 
 	logger.Debug("Initializing postgres connection pool!")
-
-	pool, err := core_postgres_pool.NewConnectionPool(
+	pool, err := core_pgx_pool.NewPool(
 		ctx,
-		core_postgres_pool.NewConfigMust(),
+		core_pgx_pool.NewConfigMust(),
 	)
+
 	if err != nil {
 		logger.Fatal("failed to init postgres conection pool", zap.Error(err))
 	}
@@ -55,9 +55,7 @@ func main() {
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
 		logger,
-		core_http_middleware.Logger(logger),
 		core_http_middleware.RequestID(),
-		core_http_middleware.Panic(),
 		core_http_middleware.Trace(),
 	)
 	apiVersionRouter := core_http_server.NewAPIVersionRouters(core_http_server.ApiVersionRouter1)

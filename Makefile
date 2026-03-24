@@ -1,7 +1,7 @@
 include .env
 export
 
-export postgres_ROOT=$(shell pwd)
+export PROJECT_ROOT=$(shell pwd)
 
 env-up:
 	@docker compose up -d todoapp-postgres
@@ -13,7 +13,7 @@ env-cleanup:
 	@read -p "Очистити всі файли? {y/N} " ans; \
 	if [ "$$ans" = "y" ]; then \
 		docker compose down todoapp-postgres port-forwarder && \
-		rm -rf out/pgdata && \
+		sudo rm -rf ${PROJECT_ROOT}/out/pgdata && \
 		echo "файли видалені"; \
 	else \
 		echo "Очистка відмінена"; \
@@ -59,4 +59,4 @@ todoapp-run:
 	@export LOGGER_FOLDER=./out/logs LEVEL=debug && \
 	export POSTGRES_HOST=localhost && \
 	go mod tidy && \
-	go run cmd/todoapp/main.go
+	go run ${PROJECT_ROOT}/cmd/todoapp/main.go

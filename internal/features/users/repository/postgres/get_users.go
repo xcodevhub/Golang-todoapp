@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/domain"
+	core_postgres_pool "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/repository/postgres/pool"
 )
 
 func userDomainsFromModels(userModels []UserModel) []*domain.User {
@@ -32,7 +33,7 @@ func (r *UsersRepository) GetUsers(
 		FROM todoapp.users
 		ORDER BY id ASC
 		LIMIT $1 
-		OFFSET $2
+		OFFSET $2;
 		`
 
 	rows, err := r.pool.Query(
@@ -60,7 +61,7 @@ func (r *UsersRepository) GetUsers(
 		}
 		userModels = append(userModels, userModel)
 	}
-	if err := rows.Err(); err != nil {
+	if err := core_postgres_pool.ErrNoRows; err != nil {
 		return nil, fmt.Errorf("next rows: %w", err)
 	}
 

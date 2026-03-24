@@ -37,12 +37,13 @@ func NewHTTPServer(
 }
 
 // Реєстрація router-ів з префіксом версії API
-func (h *HTTPServer) RegisterHandler(routers ...*APIVersionRouters) {
+func (s *HTTPServer) RegisterHandler(routers ...*APIVersionRouters) {
 	for _, router := range routers {
 		prefix := "/api/" + string(router.apiVersionRouter)
-		h.mux.Handle(
+
+		s.mux.Handle(
 			prefix+"/",
-			http.StripPrefix(prefix, router),
+			http.StripPrefix(prefix, router.WithMiddleware()),
 		)
 	}
 }
@@ -53,11 +54,11 @@ func (h *HTTPServer) Mux() *http.ServeMux {
 }
 
 // Run запускає HTTP сервер і чекає на контекст для завершення
-func (h *HTTPServer) Run(ctx context.Context) error {
-	mux := core_http_middleware.ChainMiddleware(h.mux, h.middleware...)
+func (s *HTTPServer) Run(ctx context.Context) error {
+	mux := core_http_middleware.ChainMiddleware(s.mux, s.middleware...)
 
 	server := &http.Server{
-		Addr:    h.config.Addr,
+		Addr:    s.config.Addr,
 		Handler: mux,
 	}
 
@@ -65,7 +66,7 @@ func (h *HTTPServer) Run(ctx context.Context) error {
 
 	// Запускаємо сервер в горутині
 	go func() {
-		h.log.Warn("starting HTTP server", zap.String("addr", h.config.Addr))
+		s.log.Warn("starting HTTP server", zap.String("addr", s.config.Addr))
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			ch <- err
 		}
@@ -79,11 +80,11 @@ func (h *HTTPServer) Run(ctx context.Context) error {
 			return fmt.Errorf("listen and serve HTTP: %w", err)
 		}
 	case <-ctx.Done():
-		h.log.Warn("shutdown HTTP server ...")
+		s.log.Warn("shutdown HTTP server ...")
 
 		shutdownCtx, cancel := context.WithTimeout(
 			context.Background(),
-			h.config.ShutdownTimeout,
+			s.config.ShutdownTimeout,
 		)
 		defer cancel()
 
@@ -91,7 +92,7 @@ func (h *HTTPServer) Run(ctx context.Context) error {
 			_ = server.Close()
 			return fmt.Errorf("shutdown HTTP server: %w", err)
 		}
-		h.log.Warn("HTTP server stopped")
+		s.log.Warn("HTTP server stopped")
 	}
 
 	return nil

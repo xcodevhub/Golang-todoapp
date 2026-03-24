@@ -39,7 +39,7 @@ func DecodeAndValidateRequest(r *http.Request, dest any) error {
 	}
 
 	if err != nil {
-		fmt.Errorf(
+		return fmt.Errorf(
 			"validate struct: %v: %w",
 			err,
 			core_errors.ErrInvalidArgument,
