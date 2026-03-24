@@ -1,0 +1,12 @@
+$kind: http-request
+name: create_user
+url: "{{baseurl}}/users"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "full_name": "Кириченко Костя"
+        
+    }
+order: 1774197098408

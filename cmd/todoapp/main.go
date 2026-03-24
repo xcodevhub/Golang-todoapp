@@ -1,0 +1,70 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
+	core_logger "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/logger"
+	core_postgres_pool "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/repository/postgres/pool"
+	core_http_middleware "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/transport/http/middleware"
+	core_http_server "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/transport/http/server"
+	users_repository_postgres "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/features/users/repository/postgres"
+	users_service "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/features/users/service"
+	users_transport_http "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/features/users/transport/http"
+	"go.uber.org/zap"
+)
+
+func main() {
+	ctx, cancel := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT, syscall.SIGTERM,
+	)
+	defer cancel()
+
+	logger, err := core_logger.NewLogger(core_logger.NewConfigMust())
+	if err != nil {
+		fmt.Printf("failed to init aplication logger:", err)
+		os.Exit(1)
+	}
+
+	defer logger.Close()
+
+	logger.Debug("Initializing postgres connection pool!")
+
+	pool, err := core_postgres_pool.NewConnectionPool(
+		ctx,
+		core_postgres_pool.NewConfigMust(),
+	)
+	if err != nil {
+		logger.Fatal("failed to init postgres conection pool", zap.Error(err))
+	}
+	defer pool.Close()
+
+	logger.Debug("Initializing features", zap.String("feature", "users"))
+
+	usersRepository := users_repository_postgres.NewUsersPostgresRepository(pool)
+
+	usersService := users_service.NewUsersService(usersRepository)
+
+	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(usersService)
+
+	logger.Debug("Initializing HTTP server")
+	httpServer := core_http_server.NewHTTPServer(
+		core_http_server.NewConfigMust(),
+		logger,
+		core_http_middleware.Logger(logger),
+		core_http_middleware.RequestID(),
+		core_http_middleware.Panic(),
+		core_http_middleware.Trace(),
+	)
+	apiVersionRouter := core_http_server.NewAPIVersionRouters(core_http_server.ApiVersionRouter1)
+	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
+	httpServer.RegisterAPIRouter(apiVersionRouter)
+
+	if err := httpServer.Run(ctx); err != nil {
+		logger.Error("HTTP server run error", zap.Error(err))
+	}
+}

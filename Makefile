@@ -1,0 +1,62 @@
+include .env
+export
+
+export postgres_ROOT=$(shell pwd)
+
+env-up:
+	@docker compose up -d todoapp-postgres
+
+env-down:
+	@docker compose down todoapp-postgres
+
+env-cleanup:
+	@read -p "Очистити всі файли? {y/N} " ans; \
+	if [ "$$ans" = "y" ]; then \
+		docker compose down todoapp-postgres port-forwarder && \
+		rm -rf out/pgdata && \
+		echo "файли видалені"; \
+	else \
+		echo "Очистка відмінена"; \
+	fi
+
+env-port-forward:
+	@docker compose up -d port-forwarder
+
+env-port-close:
+	@docker compose down port-forwarder
+
+
+
+migrate-create:
+	@if [ -z "$(seq)" ]; then \
+		echo "Відсутній необхідний параметр seq"; \
+		exit 1; \
+	fi; \
+	docker compose run --rm todoapp-postgres-migrate \
+		create \
+		-ext sql \
+		-dir /migrations \
+		-seq "$(seq)"
+
+migrate-up:
+	@make migrate-action action=up
+
+migrate-down:
+	@make migrate-action action=down
+
+migrate-action:
+	@if [ -z "$(action)" ]; then \
+		echo "Відсутній необхідний параметр action"; \
+		exit 1; \
+	fi; \
+	docker compose run --rm todoapp-postgres-migrate \
+		-path /migrations \
+		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todoapp-postgres:5432/${POSTGRES_DB}?sslmode=disable \
+		"$(action)"
+
+
+todoapp-run:
+	@export LOGGER_FOLDER=./out/logs LEVEL=debug && \
+	export POSTGRES_HOST=localhost && \
+	go mod tidy && \
+	go run cmd/todoapp/main.go

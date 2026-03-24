@@ -1,0 +1,5 @@
+name: todoapp-local
+values:
+  - key: baseurl
+    value: ''
+    enabled: true

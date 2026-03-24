@@ -1,0 +1,11 @@
+$kind: http-request
+name: patch_user
+url: "{{baseurl}}/users/111"
+method: PATCH
+body:
+  type: json
+  content: |-
+    {
+        "phone_number": null
+    }
+order: 4100112782403710
