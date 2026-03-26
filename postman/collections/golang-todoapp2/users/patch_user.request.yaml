@@ -1,11 +1,11 @@
 $kind: http-request
 name: patch_user
-url: "{{baseurl}}/users/111"
+url: "{{baseurl}}/users/7"
 method: PATCH
 body:
   type: json
   content: |-
     {
-        "phone_number": null
+        "full_name": "Кириченко Костя Костя"
     }
 order: 4100112782403710

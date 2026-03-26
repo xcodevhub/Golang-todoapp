@@ -1,0 +1,11 @@
+$kind: http-request
+name: patch_task
+url: "{{baseurl}}/tasks/6"
+method: PATCH
+body:
+  type: json
+  content: |-
+    {
+      "title": "оновлений тайтл"
+    }
+order: 3654705492217853

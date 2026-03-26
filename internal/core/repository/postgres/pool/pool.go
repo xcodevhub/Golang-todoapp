@@ -15,7 +15,7 @@ type Pool interface {
 
 type Rows interface {
 	Close()
-	Err()
+	Err() error
 	Next() bool
 	Scan(dest ...any) error
 }

@@ -1,5 +1,5 @@
 $kind: http-request
 name: delete_user
-url: "{{baseurl}}/users/3"
+url: "{{baseurl}}/users/5"
 method: DELETE
 order: 4081400501587761

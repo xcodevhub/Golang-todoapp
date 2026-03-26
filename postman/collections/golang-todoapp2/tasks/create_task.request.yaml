@@ -1,0 +1,12 @@
+$kind: http-request
+name: create_task
+url: "{{baseurl}}/task"
+method: POST
+body:
+  type: json
+  content: |-
+    {
+        "title": "зробити домашку",
+        "author_user_id": 1
+    }
+order: 66210033935

@@ -35,7 +35,7 @@ func NewUserUninitialized(
 	phoneNumber *string,
 ) User {
 	return NewUser( // 🔥 було newUser
-		UninitializedUserID,
+		UninitializedID,
 		UninitializedVersion,
 		fullName,
 		phoneNumber,
