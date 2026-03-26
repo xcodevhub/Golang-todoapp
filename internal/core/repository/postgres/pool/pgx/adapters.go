@@ -2,6 +2,7 @@ package core_pgx_pool
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -13,16 +14,23 @@ type pgxRows struct {
 }
 
 func (p pgxRows) Close() {
-	panic("unimplemented")
+	p.Rows.Close()
 }
-func (p pgxRows) Err() {
-	panic("unimplemented")
+
+func (p pgxRows) Err() error {
+	return p.Rows.Err()
 }
+
 func (p pgxRows) Next() bool {
-	panic("unimplemented")
+	return p.Rows.Next()
 }
+
 func (p pgxRows) Scan(dest ...any) error {
-	panic("unimplemented")
+	err := p.Rows.Scan(dest...)
+	if err != nil {
+		return mapErrors(err)
+	}
+	return nil
 }
 
 type pgxRow struct {
@@ -32,15 +40,38 @@ type pgxRow struct {
 func (r pgxRow) Scan(dest ...any) error {
 	err := r.Row.Scan(dest...)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return core_postgres_pool.ErrNoRows
-		}
-		return err
+		return mapErrors(err)
 	}
-
 	return nil
 }
 
 type pgxCommandTag struct {
 	pgconn.CommandTag
+}
+
+func mapErrors(err error) error {
+	const (
+		pgxViolatesForeignKeyErrorCode = "23503"
+	)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return core_postgres_pool.ErrNoRows
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == pgxViolatesForeignKeyErrorCode {
+			return fmt.Errorf(
+				"%v: %w",
+				err,
+				core_postgres_pool.ErrViolatesForeignKey,
+			)
+		}
+	}
+
+	return fmt.Errorf(
+		"%v: %w",
+		err,
+		core_postgres_pool.ErrUnknown,
+	)
 }

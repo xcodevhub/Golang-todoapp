@@ -1,5 +1,5 @@
 name: todoapp-local
 values:
   - key: baseurl
-    value: ''
+    value: 'http://localhost:5050'
     enabled: true

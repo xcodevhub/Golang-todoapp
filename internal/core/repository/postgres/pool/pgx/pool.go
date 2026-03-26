@@ -65,7 +65,7 @@ func (p *Pool) Query(
 	if err != nil {
 		return nil, err
 	}
-	return pgxRows{rows}, nil
+	return &Rows{rows}, nil
 }
 
 func (p *Pool) QueryRow(

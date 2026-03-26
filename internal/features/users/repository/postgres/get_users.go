@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/domain"
-	core_postgres_pool "github.com/kiricenkokbravl5-beep/Golang-todoapp-/tree/infra/env-setup/internal/core/repository/postgres/pool"
 )
 
 func userDomainsFromModels(userModels []UserModel) []*domain.User {
@@ -61,8 +60,8 @@ func (r *UsersRepository) GetUsers(
 		}
 		userModels = append(userModels, userModel)
 	}
-	if err := core_postgres_pool.ErrNoRows; err != nil {
-		return nil, fmt.Errorf("next rows: %w", err)
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate rows: %w", err)
 	}
 
 	userDomains := userDomainsFromModels(userModels)

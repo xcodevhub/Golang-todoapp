@@ -55,6 +55,18 @@ migrate-action:
 		"$(action)"
 
 
+
+logs-cleanup:
+	@read -p "Очистити всі лог файли? {y/N} " ans; \
+	if [ "$$ans" = "y" ]; then \
+		sudo rm -rf ${PROJECT_ROOT}/out/logs && \
+		echo "файли логів видалені"; \
+	else \
+		echo "Очистка відмінена"; \
+	fi
+
+
+
 todoapp-run:
 	@export LOGGER_FOLDER=./out/logs LEVEL=debug && \
 	export POSTGRES_HOST=localhost && \
