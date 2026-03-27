@@ -1,0 +1,7 @@
+$kind: http-request
+name: get_statistics
+url: "{{baseurl}}/statistics?user_id=1"
+method: GET
+queryParams:
+  user_id: "1"
+order: 1242573058899041
