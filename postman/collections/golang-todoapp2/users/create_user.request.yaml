@@ -6,7 +6,7 @@ body:
   type: json
   content: |-
     {
-        "full_name": "Кириченко Костя",
+        "full_name": "Кириченко Ira",
         "phone_number": "+380684672197" 
     }
 order: 1774197098408

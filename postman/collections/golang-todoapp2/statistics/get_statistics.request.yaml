@@ -1,0 +1,5 @@
+$kind: http-request
+name: get_statistics
+url: "{{baseurl}}/statistics"
+method: PATCH
+order: 1774598247669
